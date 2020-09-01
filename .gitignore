@@ -5,6 +5,8 @@
 logs/
 *_test.py
 
+VOCdevkit/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
