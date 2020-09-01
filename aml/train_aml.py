@@ -1,12 +1,6 @@
-"""
-Use this script to train your keras-yolo3 model on AML.
-"""
-
 import os
 import glob
 import shutil
-import json
-
 from azureml.core import Workspace, Experiment
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
@@ -14,16 +8,14 @@ from azureml.core import Environment
 from azureml.core.conda_dependencies import CondaDependencies
 from azureml.core import ScriptRunConfig
 from azureml.core.runconfig import DEFAULT_GPU_IMAGE
+from azureml.data.data_reference import DataReference
 from azureml.core import Dataset
 
-with open('aml/config.json', 'r') as f:
-    config = json.load(f)
-
 ws = Workspace.create(
-    config['workspace_name'],
-    subscription_id=config['subscription_id'],
-    resource_group=config['resource_group'],
-    location=config['location'],
+    "yolo3_ws",
+    subscription_id="a6c2a7cc-d67e-4a1a-b765-983f08c0423a",
+    resource_group="doorfinder_rg",
+    location="westus2",
     exist_ok=True,
 )
 
@@ -71,6 +63,7 @@ except ComputeTargetException:
 aml_cluster.wait_for_completion(show_output=True)
 
 def_blob_store = ws.get_default_datastore()
+# def_blob_store.upload("VOCdevkit", target_path="/data/VOCdevkit")
 
 dataset = Dataset.File.from_files(path=(def_blob_store, '/data/VOCdevkit'))
 
