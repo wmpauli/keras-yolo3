@@ -3,10 +3,13 @@ channels:
   - default
   - conda-forge
 dependencies:
-  - python=3.5.2
+  - python=3.6.11
   - pip
   - pip:
     - keras==2.1.5
     - tensorflow==1.6.0
     - pillow
     - matplotlib
+    - h5py
+    - tensorboard
+    - azureml-sdk

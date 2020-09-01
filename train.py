@@ -2,22 +2,41 @@
 Retrain the YOLO model for your own dataset.
 """
 
+import os
 import numpy as np
+import argparse
+import time
+
 import keras.backend as K
 from keras.layers import Input, Lambda
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
+from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping, Callback
+
+from azureml.core import Run
 
 from yolo3.model import preprocess_true_boxes, yolo_body, tiny_yolo_body, yolo_loss
 from yolo3.utils import get_random_data
 
+run = Run.get_context()
 
+class LogRunMetrics(Callback):
+    # callback at the end of every epoch
+    def on_epoch_end(self, epoch, log):
+        # log a value repeated which creates a list
+        run.log("val_loss", log["val_loss"])
+        run.log("loss", log["loss"])
+        
 def _main():
-    annotation_path = 'train.txt'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data', type=str, default='VOCdevkit', help='path to folder that contains 2007_train.txt')
+    args = parser.parse_args()
+    
+    data_prefix = args.data
+    annotation_path = os.path.join(data_prefix, '2007_train.txt')
     log_dir = 'logs/000/'
     classes_path = 'model_data/voc_classes.txt'
-    anchors_path = 'model_data/yolo_anchors.txt'
+    anchors_path = 'model_data/tiny_yolo_anchors.txt'
     class_names = get_classes(classes_path)
     num_classes = len(class_names)
     anchors = get_anchors(anchors_path)
@@ -37,10 +56,20 @@ def _main():
         monitor='val_loss', save_weights_only=True, save_best_only=True, period=3)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
+    log_to_aml = LogRunMetrics()
 
     val_split = 0.1
     with open(annotation_path) as f:
-        lines = f.readlines()
+        lines_orig = f.readlines()
+
+    lines = []
+    for line in lines_orig:
+        splits = line.split()
+        image_path = os.path.join(data_prefix, splits[0])
+        lines.append(" ".join([image_path] + splits[1:]))
+
+    lines = lines[:100]
+
     np.random.seed(10101)
     np.random.shuffle(lines)
     np.random.seed(None)
@@ -60,7 +89,7 @@ def _main():
                 steps_per_epoch=max(1, num_train//batch_size),
                 validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors, num_classes),
                 validation_steps=max(1, num_val//batch_size),
-                epochs=50,
+                epochs=1,
                 initial_epoch=0,
                 callbacks=[logging, checkpoint])
         model.save_weights(log_dir + 'trained_weights_stage_1.h5')
@@ -79,11 +108,24 @@ def _main():
             steps_per_epoch=max(1, num_train//batch_size),
             validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors, num_classes),
             validation_steps=max(1, num_val//batch_size),
-            epochs=100,
-            initial_epoch=50,
-            callbacks=[logging, checkpoint, reduce_lr, early_stopping])
+            epochs=2,
+            initial_epoch=1,
+            callbacks=[logging, checkpoint, reduce_lr, early_stopping, log_to_aml])
         model.save_weights(log_dir + 'trained_weights_final.h5')
 
+    for attempt in range(5):
+        try:
+            run.register_model("tiny_yolov3", model_path=log_dir + 'trained_weights_final.h5')
+            print("Model registration successful")
+            break
+        except:
+            if attempt < 4:
+                delay = 2**(attempt*2)
+                print("Model registration failed. trying again in %d seconds" % delay)
+                time.sleep(delay)
+            else:
+                raise
+    
     # Further training if needed.
 
 
