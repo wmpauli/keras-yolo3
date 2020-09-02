@@ -1,6 +1,8 @@
-# keras-yolo3
+# keras-yolo3 (AzureML)
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
+
+**Note:** This fork of the keras-yolo3 was create with the sole intent of demonstrating how to train a keras-yolo3 model on the VOC Pascal dataset, using [AzureML](https://azure.microsoft.com/en-us/services/machine-learning/).  If you are familiar with the original repository, you may want to jump right to section `Train On AzureML` below.
 
 ## Introduction
 
@@ -77,6 +79,83 @@ If you want to use original pretrained weights for YOLOv3:
     3. `python convert.py -w darknet53.cfg darknet53.weights model_data/darknet53_weights.h5`  
     4. use model_data/darknet53_weights.h5 in train.py
 
+## Train on AzureML
+
+### Prerequisites
+
+**Create Conda Environemtn**
+
+For you convenience, we added a Conda Environment definition. We recommend you [install Miniconda](https://docs.conda.io/en/latest/miniconda.html) for your distribution, to then create a conda environment for this project:
+
+```
+conda env create -f environment.yml
+```
+
+**Configure your AzureML Workspace**
+
+Create a file `aml/config.json` with the information regarding your Azure subscription and your AML Workspace. The file should look like this:
+
+```
+{
+    "workspace_name": <>,
+    "subscription_id": <>,
+    "resource_group": <>,
+    "location": <>
+}
+```
+
+**Download pretrained Yolo v3 weights**
+
+Please download the weights for the pretrained tiny yolov3 model, and store them in the root of this repository (filename should be `yolov3-tiny.weights`).
+
+**Download VOC Pascal dataset (Dev Kit)**
+
+The dataset is available here: [http://host.robots.ox.ac.uk/pascal/VOC/voc2007/#devkit](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/#devkit)
+
+Direct download links:
+- [http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtrainval_06-Nov-2007.tar](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtrainval_06-Nov-2007.tar)
+- (optional) [http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtest_06-Nov-2007.tar](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtest_06-Nov-2007.tar)
+
+Please unpack these tar balls into the root directory of this repository (i.e. `/<path>/<to>/<repo>/VOCdevkit/`).
+
+### Create AML workspace and upload data to Azure Blob Storage
+
+This can be accomplished by executing the following:
+
+```
+conda activate keras-yolo3
+python aml/upload_data.py
+```
+
+### Submit Run for Training on AML Compute
+
+```
+conda activate keras-yolo3
+python aml/train_aml.py
+```
+
+## Change log
+
+We made the following changes to enable training on AzureML.
+- Small changes to `voc_annotation.py` and `train.py` to enable loading data from Azure Blob Storage
+- We added a callback for logging results to the AML workspace. This was done in `train.py`:
+
+```
+from keras.callbacks import Callback
+
+class LogRunMetrics(Callback):
+    # callback at the end of every epoch
+    def on_epoch_end(self, epoch, log):
+        # log a value repeated which creates a list
+        run.log("val_loss", log["val_loss"])
+        run.log("loss", log["loss"])
+```
+- We added code for model registration, after successful training (in `train.py`):
+```
+run.register_model("tiny_yolov3", model_path=log_dir + 'trained_weights_final.h5')
+```
+- We did some other minor changes. For a complete list, we recommend using GitHubs compare function to compare our repository with the original.
+
 ---
 
 ## Some issues to know
@@ -97,3 +176,11 @@ If you want to use original pretrained weights for YOLOv3:
 6. The training strategy is for reference only. Adjust it according to your dataset and your goal. And add further strategy if needed.
 
 7. For speeding up the training process with frozen layers train_bottleneck.py can be used. It will compute the bottleneck features of the frozen model first and then only trains the last layers. This makes training on CPU possible in a reasonable time. See [this](https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html) for more information on bottleneck features.
+
+## Contribute
+
+We invite anybody to provide constructive feedback via github issues.  We also welcome pull requests.
+
+## Disclaimer
+
+This repository is not officially maintained.
