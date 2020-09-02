@@ -158,11 +158,11 @@ class LogRunMetrics(Callback):
 ```
 run.register_model("tiny_yolov3", model_path=log_dir + 'trained_weights_final.h5')
 ```
-- We did some other minor changes. For a complete list, we recommend using GitHubs compare function to compare our repository with the original.
+- We did some other minor changes. For a complete list, we recommend using GitHubs compare function to compare our repository with the original (e.g. [https://github.com/qqwweee/keras-yolo3/compare/master...wmpauli:master](https://github.com/qqwweee/keras-yolo3/compare/master...wmpauli:master)).
 
 ---
 
-## Some issues to know
+## Some issues to know (from orginal repo)
 
 1. The test environment is
     - Python 3.5.2

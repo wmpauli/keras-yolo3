@@ -68,6 +68,8 @@ def _main():
         image_path = os.path.join(data_prefix, splits[0])
         lines.append(" ".join([image_path] + splits[1:]))
 
+    lines = lines[:10]
+
     np.random.seed(10101)
     np.random.shuffle(lines)
     np.random.seed(None)
@@ -87,11 +89,11 @@ def _main():
                 steps_per_epoch=max(1, num_train//batch_size),
                 validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors, num_classes),
                 validation_steps=max(1, num_val//batch_size),
-                epochs=50,
+                epochs=1,
                 initial_epoch=0,
                 callbacks=[logging, checkpoint])
         model.save_weights(log_dir + 'trained_weights_stage_1.h5')
-
+        
     # Unfreeze and continue training, to fine-tune.
     # Train longer if the result is not good.
     if True:
