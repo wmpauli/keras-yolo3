@@ -1,4 +1,4 @@
-name: keras-yolo3-tmp
+name: keras-yolo3
 channels:
   - default
   - conda-forge
