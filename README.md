@@ -108,6 +108,8 @@ Create a file `aml/config.json` with the information regarding your Azure subscr
 
 Please download the weights for the pretrained tiny yolov3 model, and store them in the root of this repository (filename should be `yolov3-tiny.weights`).
 
+> Please also use follow the above instructions to convert the weights to the format expected by this repo (`convert.py`).
+
 **Download VOC Pascal dataset (Dev Kit)**
 
 The dataset is available here: [http://host.robots.ox.ac.uk/pascal/VOC/voc2007/#devkit](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/#devkit)
@@ -117,6 +119,8 @@ Direct download links:
 - (optional) [http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtest_06-Nov-2007.tar](http://host.robots.ox.ac.uk/pascal/VOC/voc2007/VOCtest_06-Nov-2007.tar)
 
 Please unpack these tar balls into the root directory of this repository (i.e. `/<path>/<to>/<repo>/VOCdevkit/`).
+
+> Please also use follow the above instructions to convert the dataset to the format expected by this repo (`voc_annotation.py`).
 
 ### Create AML workspace and upload data to Azure Blob Storage
 
