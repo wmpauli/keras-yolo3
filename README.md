@@ -2,7 +2,7 @@
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](LICENSE)
 
-**Note:** This fork of the keras-yolo3 was create with the sole intent of demonstrating how to train a keras-yolo3 model on the VOC Pascal dataset, using [AzureML](https://azure.microsoft.com/en-us/services/machine-learning/).  If you are familiar with the original repository, you may want to jump right to section `Train On AzureML` below.
+**Note:** This fork of the keras-yolo3 was created with the sole intent of demonstrating how to train a **tiny** keras-yolo3 model on the VOC Pascal dataset, using [AzureML](https://azure.microsoft.com/en-us/services/machine-learning/).  If you are familiar with the original repository, you may want to jump right to section `Train On AzureML` below.
 
 ## Introduction
 
@@ -13,13 +13,13 @@ A Keras implementation of YOLOv3 (Tensorflow backend) inspired by [allanzelener/
 
 ## Quick Start
 
-1. Download YOLOv3 weights from [YOLO website](http://pjreddie.com/darknet/yolo/).
+1. Download **tiny** YOLOv3 weights from [YOLO website](http://pjreddie.com/darknet/yolo/).
 2. Convert the Darknet YOLO model to a Keras model.
 3. Run YOLO detection.
 
 ```
-wget https://pjreddie.com/media/files/yolov3.weights
-python convert.py yolov3.cfg yolov3.weights model_data/yolo.h5
+wget https://pjreddie.com/media/files/yolov3-tiny.weights
+python convert.py yolov3-tiny.cfg yolov3-tiny.weights model_data/yolo.h5
 python yolo_video.py [OPTIONS...] --image, for image detection mode, OR
 python yolo_video.py [video_path] [output_path (optional)]
 ```
